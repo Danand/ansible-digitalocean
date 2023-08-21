@@ -1,0 +1,64 @@
+---
+- name: Obtain TLS certificate via certbot
+  hosts: all
+  become: true
+
+  vars:
+    credentials_file: /root/.secrets/certbot/digitalocean.ini
+    letsencrypt_dir_etc: /etc/letsencrypt
+    letsencrypt_dir_var: /var/lib/letsencrypt
+    plugin_image: certbot/dns-digitalocean
+
+  tasks:
+    - name: Assert domain is specified
+      assert:
+        that:
+          - domain is defined
+        fail_msg: 'Variable must be specified: domain'
+
+    - name: Assert email is specified
+      assert:
+        that:
+          - email is defined
+        fail_msg: 'Variable must be specified: email'
+
+    - name: Assert DigitalOcean token is specified
+      assert:
+        that:
+          - lookup('env','DIGITALOCEAN_TOKEN') | length > 0
+        fail_msg: 'Environment variable must be set: DIGITALOCEAN_TOKEN'
+
+    - name: Pull certbot image
+      shell: |
+        docker pull "{{ plugin_image }}"
+
+    - name: Prepare DigitalOcean API credentials
+      shell: |
+        mkdir -p "$(dirname "{{ credentials_file }}")"
+        echo "dns_digitalocean_token = {{ lookup('env', 'DIGITALOCEAN_TOKEN') }}" > "{{ credentials_file }}"
+        chmod 600 "{{ credentials_file }}"
+
+    - name: Obtain certificate via certbot
+      shell: |
+        docker run \
+          -it \
+          --rm \
+          --name "certbot" \
+          -v "{{ letsencrypt_dir_etc }}:{{ letsencrypt_dir_etc }}" \
+          -v "{{ letsencrypt_dir_var }}:{{ letsencrypt_dir_var }}" \
+          -v "{{ credentials_file }}:{{ credentials_file }}" \
+          "{{ plugin_image }}" \
+            certonly \
+              --non-interactive \
+              --agree-tos \
+              --no-eff-email \
+              --no-redirect \
+              --email '{{ email }}' \
+              --dns-digitalocean \
+              --dns-digitalocean-credentials "{{ credentials_file }}" \
+              --cert-name "{{ domain }}" \
+              -d "{{ domain }}"
+
+    - name: Clean up secrets
+      shell: |
+        rm -rf "/root/.secrets"
