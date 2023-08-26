@@ -5,6 +5,7 @@
     "certbot",
     "certonly",
     "Danand",
+    "knative",
     "letsencrypt",
     "realpath",
     "venv"

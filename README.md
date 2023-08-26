@@ -15,7 +15,7 @@ venv-init # Depends on: git@github.com:Danand/bash-alias-sync.git
 ```bash
 ansible-playbook \
   -u root \
-  -i <ip-address-of-droplet>, \
+  -i ${ip_address_of_droplet}, \
   droplet-ubuntu-22.04.yml
 ```
 
@@ -24,8 +24,35 @@ ansible-playbook \
 ```bash
 ansible-playbook \
   -u root \
-  -i <ip-address-of-droplet>, \
+  -i ${ip_address_of_droplet}, \
   certbot-dns.yml \
-  -e 'domain=<domain-name>' \
-  -e 'email=<owner-email>'
+  -e "domain=${domain}" \
+  -e "email=${email}"
+```
+
+### Install Knative CLI
+
+```bash
+ansible-playbook \
+  -u root \
+  -i ${ip_address_of_droplet}, \
+  knative-cli.yml
+```
+
+### Install Kubernetes `kind`
+
+```bash
+ansible-playbook \
+  -u root \
+  -i ${ip_address_of_droplet}, \
+  k8s-kind.yml
+```
+
+### Install Kubernetes `kubectl`
+
+```bash
+ansible-playbook \
+  -u root \
+  -i ${ip_address_of_droplet}, \
+  k8s-kubectl.yml
 ```

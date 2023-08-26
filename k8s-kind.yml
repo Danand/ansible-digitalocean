@@ -1,0 +1,29 @@
+---
+- name: Install Kubernetes kind
+  hosts: all
+  become: true
+
+  vars:
+    version: 0.20.0
+    os: linux
+    arch: amd64
+
+  tasks:
+    - name: Download Kubernetes kind binary
+      shell: |
+        curl \
+          -sL "https://kind.sigs.k8s.io/dl/v{{ version }}/kind-{{ os }}-{{ arch }}" \
+          -o kind
+
+    - name: Install Kubernetes kind binary
+      shell: |
+        mv kind /usr/local/bin/
+        chmod +x /usr/local/bin/kind
+
+    - name: Check Kubernetes kind version
+      shell: kind --version
+      register: kind_version
+
+    - name: Assert that Kubernetes kind is installed
+      assert:
+        that: kind_version.rc == 0

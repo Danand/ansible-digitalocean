@@ -1,0 +1,29 @@
+---
+- name: Install Kubernetes kubectl
+  hosts: all
+  become: true
+
+  vars:
+    version: 1.28.0
+    os: linux
+    arch: amd64
+
+  tasks:
+    - name: Download Kubernetes kubectl binary
+      shell: |
+        curl \
+          -sL "https://dl.k8s.io/release/v{{ version }}/bin/{{ os }}/{{ arch }}/kubectl" \
+          -o kubectl
+
+    - name: Install Kubernetes kubectl binary
+      shell: |
+        mv kubectl /usr/local/bin/
+        chmod +x /usr/local/bin/kubectl
+
+    - name: Check Kubernetes kubectl version
+      shell: kubectl version --client
+      register: kubectl_version
+
+    - name: Assert that Kubernetes kubectl is installed
+      assert:
+        that: kubectl_version.rc == 0

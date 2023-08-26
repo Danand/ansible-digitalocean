@@ -1,0 +1,29 @@
+---
+- name: Install Knative CLI
+  hosts: all
+  become: true
+
+  vars:
+    version: 1.11.0
+    os: linux
+    arch: amd64
+
+  tasks:
+    - name: Download Knative CLI binary
+      shell: |
+        curl \
+          -sL "https://github.com/knative/client/releases/download/knative-v{{ version }}/kn-{{ os }}-{{ arch }}" \
+          -o kn
+
+    - name: Install Knative CLI binary
+      shell: |
+        mv kn /usr/local/bin/
+        chmod +x /usr/local/bin/kn
+
+    - name: Check Knative CLI version
+      shell: kn version
+      register: kn_version
+
+    - name: Assert that Knative CLI is installed
+      assert:
+        that: kn_version.rc == 0
